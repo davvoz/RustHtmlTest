@@ -1,3 +1,4 @@
+#![recursion_limit="256"]
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
@@ -7,7 +8,7 @@ struct Model {
 }
 
 enum Msg {
-    AddOne,
+    AddOne,SubOne
 }
 
 impl Component for Model {
@@ -22,7 +23,8 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value += 1
+            Msg::AddOne => self.value += 1,
+            Msg::SubOne => self.value -= 1,
         }
         true
     }
@@ -36,7 +38,7 @@ impl Component for Model {
 
     fn view(&self) -> Html {
         html! {
-            <div>
+            <div style="margin-left: -0.50%;">
                 <div style="background-color: black;
                             color: grey;
                             top: 0;
@@ -55,18 +57,22 @@ impl Component for Model {
                             width: 100%;
                             height: 70%;
                             text-overflow: ellipsis;">
-                    <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                    <p>{ self.value }</p>
+                    <div>
+                        <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+                        <button onclick=self.link.callback(|_| Msg::SubOne)>{ "-1" }</button>
+                        <p>{ self.value }</p>
+                    </div> 
+                    <canvas width=self.value style="background-color:red"/>   
                 </div>
                 <div style="background-color: blue;
-                            color: black;
+                            color: white;
                             top: 80%;
                             position: fixed;
                             margin: 0;
                             width: 100%;
                             height: 20%;
                             text-overflow: ellipsis;">
-                            <p>{"Bye bye Cruel world !"}</p>
+                        <h3>{"Bye bye Cruel world !"}</h3>
                 </div>
             </div>
         }
