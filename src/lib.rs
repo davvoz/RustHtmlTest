@@ -1,19 +1,18 @@
 #![recursion_limit = "512"]
-use std::f64;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use yew::prelude::*;
+//use gloo::{events::EventListener};
 
 struct Model {
     link: ComponentLink<Self>,
-    canvas_width: i64,
+    stroke_style_is_red: bool,
+    stroke_style_is_red_c2: bool,
 }
 
 enum Msg {
-    AddOne,
-    SubOne,
-    Draw,
     Draw2,
+    Try,
 }
 
 impl Component for Model {
@@ -22,16 +21,25 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            canvas_width: 500,
+            stroke_style_is_red_c2: true,
+            stroke_style_is_red: true,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        if self.stroke_style_is_red == true {
+            self.stroke_style_is_red = false;
+        } else {
+            self.stroke_style_is_red = true;
+        }
+        if self.stroke_style_is_red_c2 == true {
+            self.stroke_style_is_red_c2 = false;
+        } else {
+            self.stroke_style_is_red_c2 = true;
+        }
         match msg {
-            Msg::AddOne => self.canvas_width = add(self.canvas_width, 10),
-            Msg::SubOne => self.canvas_width = add(self.canvas_width, -10),
-            Msg::Draw => draw_canvas(),
-            Msg::Draw2 => draw_other_canvas(),
+            Msg::Draw2 => try_it(self.stroke_style_is_red_c2, 0),
+            Msg::Try => try_it(self.stroke_style_is_red, 1),
         }
         true
     }
@@ -66,38 +74,19 @@ impl Component for Model {
                             text-overflow: ellipsis;">
                     <div style="background-color:
                                 pink;
-                                width:33.4%;
+                                width:50%;
                                 float:left;
                                 position:fixed;
                                 height:60%">
-                        <div>{"Canvas width"}</div>
-                        <div>
-                            <button onclick=self.link.callback(|_| Msg::Draw2)>{ "draw" }</button>
-                        </div>
-                        <canvas id="canvas" style="background-color:white;width:100%"/>
-                    </div>
-                    <div style="background-color:yellow;
-                                width:33.33%;
-                                float:left;
-                                position:fixed;
-                                left:33.33%;
-                                height:60%">
-                        {"lorem ips"}
-                        <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                            <button onclick=self.link.callback(|_| Msg::SubOne)>{ "-1" }</button>
-                        <p>{ self.canvas_width }</p>
+                        <canvas id="canvas" style="background-color:white;width:100%" onclick=self.link.callback(|_| Msg::Draw2)/>
                     </div>
                     <div style="background-color:grey;
-                                width:33.33%;
+                                width:50%;
                                 float:left;
                                 position:fixed;
-                                left:66.66%;
+                                left:50%;
                                 height:60%">
-                        {"lorem ips"}
-                        <div>
-                            <button onclick=self.link.callback(|_| Msg::Draw)>{ "draw" }</button>
-                        </div>
-                        <canvas id="canvasz"  style="background-color:white;width:100%"/>
+                        <canvas id="canvasz"  style="background-color:white;width:100%" onclick=self.link.callback(|_| Msg::Try)/>
                     </div>
                 </div>
                 <div style="background-color: blue;
@@ -114,20 +103,21 @@ impl Component for Model {
         }
     }
 }
-pub fn initialize() {}
 
 #[wasm_bindgen(start)]
 pub fn run_app() {
     App::<Model>::new().mount_to_body();
 }
 
-fn add(a: i64, b: i64) -> i64 {
-    return a + b;
-}
-
-fn draw_canvas() {
+fn try_it(is_red: bool, canvas_index: i8) {
     let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("canvasz").unwrap();
+    let canvas;
+    if canvas_index == 1 {
+        canvas = document.get_element_by_id("canvasz").unwrap();
+    } else {
+        canvas = document.get_element_by_id("canvas").unwrap();
+    }
+
     let canvas: web_sys::HtmlCanvasElement = canvas
         .dyn_into::<web_sys::HtmlCanvasElement>()
         .map_err(|_| ())
@@ -140,68 +130,38 @@ fn draw_canvas() {
         .dyn_into::<web_sys::CanvasRenderingContext2d>()
         .unwrap();
 
-    context.begin_path();
-
-    // Draw the outer circle.
-    context
-        .arc(75.0, 75.0, 50.0, 0.0, f64::consts::PI * 2.0)
-        .unwrap();
-
-    // Draw the mouth.
-    context.move_to(110.0, 75.0);
-    context.arc(75.0, 75.0, 35.0, 0.0, f64::consts::PI).unwrap();
-
-    // Draw the left eye.
-    context.move_to(65.0, 65.0);
-    context
-        .arc(60.0, 65.0, 5.0, 0.0, f64::consts::PI * 2.0)
-        .unwrap();
-
-    // Draw the right eye.
-    context.move_to(95.0, 65.0);
-    context
-        .arc(90.0, 65.0, 5.0, 0.0, f64::consts::PI * 2.0)
-        .unwrap();
-
-    context.stroke();
-}
-fn draw_other_canvas() {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("canvas").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas
-        .dyn_into::<web_sys::HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap();
-
-    let context = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()
-        .unwrap();
-
+    let lato = canvas.width() / 10;
     let height = canvas.height();
     let width = canvas.width();
+    context.set_line_width(10.0);
+    if is_red == true {
+        context.set_stroke_style(&"green".into());
+    } else {
+        context.set_stroke_style(&"red".into());
+    }
 
-    let lato = 20;
-    let mut _counter_hight = 0;
-    let mut _counter_width = 0;
-
-    for y in 0..width * lato {
-        for x in 0..height * lato {
-            if y % 2 == 0 {
-                context.set_fill_style(&"red".into());
-            } else if y % 2 == 1 {
-                context.set_fill_style(&"green".into());
-            }
-            context.fill_rect(
+    for y in 0..height {
+        for x in 0..width {
+            context.stroke_rect(
                 (y * lato).into(),
                 (x * lato).into(),
                 lato.into(),
                 lato.into(),
             );
-            _counter_width += 1 * lato;
         }
-        _counter_hight += 1 * lato;
     }
+}
+
+pub fn eventlistener_new_p_mousedown() {
+    // let document = web_sys::window().unwrap().document().unwrap();
+    // let canvas = document.get_element_by_id("canvas").unwrap();
+    // let canvas: web_sys::HtmlCanvasElement = canvas
+    //     .dyn_into::<web_sys::HtmlCanvasElement>()
+    //     .map_err(|_| ())
+    //     .unwrap();
+    // let on_down = EventListener::new(&canvas, "mousedown", move |_event| {
+    //     web_sys::console::log_1(&"Paragrapah mousedown".into());
+    //     try_it(false);
+    // });
+    // on_down.forget();
 }
