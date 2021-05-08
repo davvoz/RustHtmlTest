@@ -1,0 +1,2 @@
+# RustHtmlTest
+HTML from Rust
